@@ -1,0 +1,7 @@
+[
+    {
+        "$match": {
+            "position": "Assistant Professor"
+        }
+    }
+]

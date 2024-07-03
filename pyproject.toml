@@ -1,0 +1,8 @@
+[tool.vulture]
+paths = ["myapi"]
+min_confidence = 70
+sort_by_size = true
+verbose = false
+ignore_names = [
+    "layout",
+]

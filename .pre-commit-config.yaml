@@ -1,0 +1,18 @@
+repos:
+    - repo: https://github.com/PyCQA/flake8
+      rev: 7.0.0
+      hooks:
+          - id: flake8
+    - repo: https://github.com/psf/black
+      rev: 24.2.0
+      hooks:
+          - id: black
+            # It is recommended to specify the latest version of Python
+            # supported by your project here, or alternatively use
+            # pre-commit's default_language_version, see
+            # https://pre-commit.com/#top_level-default_language_version
+            language_version: python3.9
+    - repo: https://github.com/jendrikseipp/vulture
+      rev: 'v2.11'  # or any later Vulture version
+      hooks:
+        - id: vulture

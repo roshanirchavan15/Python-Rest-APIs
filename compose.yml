@@ -1,0 +1,118 @@
+services:
+  load_data:
+    build: 
+      dockerfile: Dockerfile.load_data
+    image: debian
+    container_name: load_data
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "test -d project_data/mongodb && project_data/mysql ]"]
+      interval: 5s
+      timeout: 20s
+      retries: 2
+      start_interval: 15s
+    volumes:
+      - ./scripts/load_data/setup.sh:/scripts/load_data/setup.sh
+      - myapi_volume:/project_data/:rw
+    command: ["sh", "scripts/load_data/setup.sh"]
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    build:
+      dockerfile: Dockerfile.mongodb
+    restart: always
+    depends_on:
+      load_data:
+        condition: service_completed_successfully
+        restart: true
+        required: true
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/academicworld --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_interval: 10s
+    environment:
+        # NOTE: in PROD we would never hard code these credentials
+        MONGO_INITDB_ROOT_USERNAME: "take_home_assessment_user"
+        MONGO_INITDB_ROOT_PASSWORD: "take_home_assessment_password"
+        MONGO_INITDB_DATABASE: "academicworld"
+    ports:
+        - "27017:27017"
+    volumes:
+      - myapi_volume:/project_data/
+  mongo-express:
+    image: mongo-express
+    container_name: mongodb_admin_ui
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      # NOTE: in PROD we would never hard code these credentials
+      ME_CONFIG_MONGODB_ADMINUSERNAME: "take_home_assessment_user"
+      ME_CONFIG_MONGODB_ADMINPASSWORD: "take_home_assessment_password"
+      ME_CONFIG_MONGODB_URL: "mongodb://take_home_assessment_user:take_home_assessment_password@mongodb:27017/academicworld?authSource=admin"
+      ME_CONFIG_BASICAUTH_USERNAME: "admin"
+      ME_CONFIG_BASICAUTH_PASSWORD: "password"
+    depends_on:
+      load_data:
+        condition: service_completed_successfully
+      mongodb:
+        condition: service_healthy
+  mysql:
+    container_name: mysql
+    build:
+      dockerfile: Dockerfile.mysql
+    image: mysql
+    ports:
+      - "3307:3307"
+    restart: always
+    depends_on:
+      load_data:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_interval: 10s
+    environment:
+        MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        # NOTE: in PROD we would never hard code these credentials
+        MYSQL_USER: "take_home_assessment_user"
+        MYSQL_PASSWORD: "take_home_assessment_password"
+        MYSQL_DATABASE: "academicworld"
+    volumes:
+      - myapi_volume:/project_data/
+  adminir:
+    container_name: mysql_admin_ui
+    image: adminer
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - 8080:8080
+  python:
+    container_name: python
+    build:
+      dockerfile: Dockerfile.python
+    image: python
+    restart: always
+    depends_on:
+      load_data:
+        condition: service_completed_successfully
+      mongodb:
+        condition: service_healthy
+        restart: true
+      mysql:
+        condition: service_healthy
+        restart: true
+    ports:
+      - 8050:8050
+    volumes:
+      - ./myapi:/myapi/
+      - myapi_volume:/project_data/
+
+volumes:
+  myapi_volume:

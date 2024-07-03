@@ -1,0 +1,12 @@
+# Ensure everyone uses the same version of Python
+FROM python:3.9
+
+# Copy the myapi directory locally into the Python container
+ADD myapi myapi
+
+# Ensure that the container has what it needs to use the required package
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
+
+# Keeping container alive
+CMD ["tail", "-f", "/dev/null"]

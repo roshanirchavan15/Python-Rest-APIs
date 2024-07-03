@@ -1,0 +1,6 @@
+# NOTE: build a container from debian
+FROM debian:11
+
+# NOTE: download wget, zip, and unzip packages
+RUN  apt-get update \
+    && apt-get install -y wget zip unzip
