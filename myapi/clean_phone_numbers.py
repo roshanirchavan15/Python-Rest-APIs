@@ -26,16 +26,10 @@ try:
         user=MYSQL_CREDS["user"],
         password=MYSQL_CREDS["password"],
         database=MYSQL_CREDS["database"],
-        # port=3307
     ) as connection:
         with connection.cursor() as cursor:
             cursor.execute(mysql_query)
             mysql_result = cursor.fetchall() #fetching the result
-            #mysql_result gets the data in the form of list of tuples
-            # print(f"there are {len(mysql_result)} query results")
-            # print(f"the results are:")
-            # for x in mysql_result:
-            #     print(x)
 except Error as e:
 
     print(f"failed to connect to mysql db: {e}")
