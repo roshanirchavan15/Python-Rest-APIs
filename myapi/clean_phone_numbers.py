@@ -1,5 +1,3 @@
-import os
-import pathlib
 import pytz
 import csv
 from datetime import datetime
