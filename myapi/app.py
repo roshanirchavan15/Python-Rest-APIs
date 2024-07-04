@@ -4,7 +4,6 @@
 Web application to showcase your REST API skills
 """
 
-from flask import render_template
 import connexion
 
 app = connexion.App(__name__, specification_dir="./")
@@ -14,6 +13,7 @@ app.add_api("swagger.yml")
 
 @app.route("/")
 def home():
+    from flask import render_template
     return render_template("home.html")
 
 
