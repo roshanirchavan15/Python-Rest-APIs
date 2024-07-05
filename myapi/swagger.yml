@@ -73,6 +73,128 @@ paths:
                       type: string
                     publicationsCount:
                       type: integer
+    put:
+      tags:
+        - "Keywords"
+      summary: Update an existing keyword record
+      description: Update data by modifying an existing record in the `keyword` table within the MySQL database.
+      operationId: "keyword_endpoint.update_keyword"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - name
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "Updated Keyword Name"
+      responses:
+        '200':
+          description: Keyword updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Keyword with id 1 updated successfully
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input, JSON data expected
+        '404':
+          description: Keyword not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Keyword with id 1 not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error connecting to MySQL: some error message"
+    delete:
+      tags:
+        - "Keywords"
+      summary: Delete an existing keyword record
+      description: Delete data by removing an existing record in the `keyword` table within the MySQL database.
+      operationId: "keyword_endpoint.delete_keyword"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Keyword deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Keyword with id 1 deleted successfully
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input, JSON data expected
+        '404':
+          description: Keyword not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Keyword with id 1 not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error connecting to MySQL: some error message"
   /faculty-top-cited/{year}:
     get:
       operationId: "faculty.get_top_cited"

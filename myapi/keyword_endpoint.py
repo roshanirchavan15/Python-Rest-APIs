@@ -108,3 +108,79 @@ def get_popular():
         logging.error(f"Failed to connect to MongoDB or execute query: {e}")
         return jsonify({"error": str(e)}), 500
 
+def update_keyword():
+    from flask import request, jsonify
+    if not request.is_json:
+        return jsonify({"error": "Invalid input, JSON data expected"}), 400
+
+    data = request.get_json()
+    keyword_id = data.get("id")
+    new_name = data.get("name")
+
+    try:
+        with connect(
+            host=MYSQL_CREDS["host"],
+            user=MYSQL_CREDS["user"],
+            password=MYSQL_CREDS["password"],
+            database=MYSQL_CREDS["database"],
+        ) as connection:
+            with connection.cursor() as cursor:
+                query = "UPDATE keyword SET name = %s WHERE id = %s"
+                cursor.execute(query, (new_name, keyword_id))
+
+                # Check if update was successful
+                if cursor.rowcount > 0:
+                    return jsonify({"message": f"Keyword with id {keyword_id} updated successfully"}), 200
+                else:
+                    return jsonify({"error": f"Keyword with id {keyword_id} not found"}), 404
+
+    except Error as e:
+        return jsonify({"error": f"Error connecting to MySQL: {e}"}), 500
+
+
+def delete_keyword():
+    from flask import request, jsonify
+    if not request.is_json:
+        return jsonify({"error": "Invalid input, JSON data expected"}), 400
+
+    data = request.get_json()
+    keyword_id = data.get("id")
+
+    if keyword_id is None:
+        return jsonify({"error": "Invalid input, JSON data expected"}), 400
+
+    try:
+        with connect(
+            host=MYSQL_CREDS["host"],
+            user=MYSQL_CREDS["user"],
+            password=MYSQL_CREDS["password"],
+            database=MYSQL_CREDS["database"],
+        ) as connection:
+            with connection.cursor() as cursor:
+                # Check if the keyword exists
+                check_keyword_query = "SELECT id FROM keyword WHERE id = %s"
+                cursor.execute(check_keyword_query, (keyword_id,))
+                if cursor.fetchone() is None:
+                    return jsonify({"error": f"Keyword with id {keyword_id} not found"}), 404
+                
+                delete_keyword_query = "DELETE FROM faculty_keyword WHERE keyword_id = %s"
+                cursor.execute(delete_keyword_query, (keyword_id,))
+                # connection.commit()
+
+                delete_keyword_query = "DELETE FROM publication_keyword WHERE keyword_id = %s"
+                cursor.execute(delete_keyword_query, (keyword_id,))
+                # connection.commit()
+
+                # Delete the keyword
+                delete_keyword_query = "DELETE FROM keyword WHERE id = %s"
+                cursor.execute(delete_keyword_query, (keyword_id,))
+                connection.commit()
+
+        return jsonify({"message": f"Keyword with id {keyword_id} deleted successfully"}), 200
+
+    except Error as e:
+        return jsonify({"error": f"Error connecting to MySQL: {e}"}), 500
+
+
+            
+            
