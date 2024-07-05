@@ -1,11 +1,15 @@
+# Importing necessary modules and connection functions
 from config import MYSQL_CREDS
 from mysql.connector import connect, Error
 
+
+# Function to fetch the top cited faculty
 def get_top_cited(year):
+    # jsonify is used to create a JSON response from a Flask view function
     from flask import jsonify
     try:
+        # Database connection
         with connect(
-            # NOTE: hard coding credentials is not something one should do in PROD
             host=MYSQL_CREDS["host"],
             user=MYSQL_CREDS["user"],
             password=MYSQL_CREDS["password"],
@@ -40,5 +44,4 @@ def get_top_cited(year):
                 ]
                 return jsonify(formatted_results), 200
     except Error as e:
-        # logging.error(f"Error connecting to MySQL: {e}")
         return jsonify({"error": f"Error connecting to MySQL: {e}"}), 500

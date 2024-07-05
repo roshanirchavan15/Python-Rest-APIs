@@ -1,30 +1,12 @@
-# from myapi import db
+# Imporing necessary libraries, connection functions  
 import os
-import logging
 import pathlib
-
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
-
 from config import MONGODB_CREDS,MYSQL_CREDS
 from mysql.connector import connect, Error
 
-
-# NOTE: create log file naming convention
-LOG_FILENAME = os.path.join("myapi", "logs", "test_db_connections.log")
-pathlib.Path(os.path.dirname(LOG_FILENAME)).mkdir(parents=True, exist_ok=True)
-LOG_ENCODING = "utf-8"
-
-# NOTE: setup logging
-logging.basicConfig(
-    filename=LOG_FILENAME,
-    encoding=LOG_ENCODING,
-    level=logging.DEBUG,
-    format="%(levelname)s:%(asctime)s.%(msecs)03d: %(message)s",
-    datefmt="%m/%d/%Y %H:%M:%S",
-)
-
-
+#Function to create new keywords and replace if already existing
 def create():
     from flask import request, jsonify
     if not request.is_json:
@@ -34,27 +16,36 @@ def create():
     keyword_str = data.get("keyword")
     id = data.get("id")
 
-
     try:
         with connect(
-            # NOTE: hard coding credentials is not something one should do in PROD
             host=MYSQL_CREDS["host"],
             user=MYSQL_CREDS["user"],
             password=MYSQL_CREDS["password"],
             database=MYSQL_CREDS["database"],
         ) as connection:
             with connection.cursor() as cursor:
-                query = "INSERT INTO keyword (id, name) VALUES (%s, %s)"
-                cursor.execute(query, (id, keyword_str))
+                #Check if keyword exists in the database
+                check_query = "SELECT id FROM keyword WHERE id = %s"
+                cursor.execute(check_query, (id,))
+                result = cursor.fetchone()
+                if result:
+                    #update the existing keyword
+                    update_query="UPDATE keyword SET name = %s WHERE id = %s"
+                    cursor.execute(update_query, (keyword_str, id))
+                    return jsonify({"message": f"Keyword with id {id} already existed and has been updated successfully"}), 201
+                else:
+                #INSERT Data into the database
+                    insert_query = "INSERT INTO keyword (id, name) VALUES (%s, %s)"
+                    cursor.execute(insert_query, (id, keyword_str))
+                    return jsonify({"message": f"Keyword with id {id} inserted successfully"}), 201
                 connection.commit()
         
         return jsonify({"message": "Keyword created successfully"}), 201
     except Error as e:
-        # logging.error(f"Error connecting to MySQL: {e}")
+
         return jsonify({"error": f"Error connecting to MySQL: {e}"}), 500
 
-    # return jsonify({"message": f"Keyword {keyword_str} with id {id}"}), 201
-
+# Function to find the top-10 most popular keywords
 def get_popular():
     from flask import request, jsonify
     # Get query parameters
@@ -105,9 +96,9 @@ def get_popular():
             return jsonify(results), 200
 
     except Exception as e:
-        logging.error(f"Failed to connect to MongoDB or execute query: {e}")
         return jsonify({"error": str(e)}), 500
 
+# Function to update data
 def update_keyword():
     from flask import request, jsonify
     if not request.is_json:
@@ -137,7 +128,7 @@ def update_keyword():
     except Error as e:
         return jsonify({"error": f"Error connecting to MySQL: {e}"}), 500
 
-
+# Function to delete data
 def delete_keyword():
     from flask import request, jsonify
     if not request.is_json:
@@ -165,11 +156,9 @@ def delete_keyword():
                 
                 delete_keyword_query = "DELETE FROM faculty_keyword WHERE keyword_id = %s"
                 cursor.execute(delete_keyword_query, (keyword_id,))
-                # connection.commit()
 
                 delete_keyword_query = "DELETE FROM publication_keyword WHERE keyword_id = %s"
                 cursor.execute(delete_keyword_query, (keyword_id,))
-                # connection.commit()
 
                 # Delete the keyword
                 delete_keyword_query = "DELETE FROM keyword WHERE id = %s"
