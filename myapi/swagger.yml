@@ -41,6 +41,38 @@ paths:
           description: "Keyword created successfully"
         "400":
           description: "Invalid input"
+    get:
+      operationId: "keyword_endpoint.get_popular"
+      tags:
+        - "Keyword"
+      summary: "Get top-10 popular keywords between given years"
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: "Start year (inclusive)"
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: "End year (inclusive)"
+      responses:
+        "200":
+          description: "Successfully retrieved top-10 popular keywords"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    keywordName:
+                      type: string
+                    publicationsCount:
+                      type: integer
   /faculty-top-cited/{year}:
     get:
       operationId: "faculty.get_top_cited"
