@@ -15,3 +15,218 @@ paths:
       responses:
         "200":
           description: "Successfully used sample endpoint"
+  /keyword-endpoint:
+    post:
+      operationId: "keyword_endpoint.create"
+      tags:
+        - "Keyword"
+      summary: "Create a new keyword on the keyword table"
+      requestBody:
+        description: "Keyword to add"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                keyword:
+                  type: string
+              required:
+                - id
+                - keyword
+      responses:
+        "201":
+          description: "Keyword created successfully"
+        "400":
+          description: "Invalid input"
+    get:
+      operationId: "keyword_endpoint.get_popular"
+      tags:
+        - "Keyword"
+      summary: "Get top-10 popular keywords between given years"
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: "Start year (inclusive)"
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: "End year (inclusive)"
+      responses:
+        "200":
+          description: "Successfully retrieved top-10 popular keywords"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    keywordName:
+                      type: string
+                    publicationsCount:
+                      type: integer
+    put:
+      tags:
+        - "Keywords"
+      summary: Update an existing keyword record
+      description: Update data by modifying an existing record in the `keyword` table within the MySQL database.
+      operationId: "keyword_endpoint.update_keyword"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+                - name
+              properties:
+                id:
+                  type: integer
+                  example: 1
+                name:
+                  type: string
+                  example: "Updated Keyword Name"
+      responses:
+        '200':
+          description: Keyword updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Keyword with id 1 updated successfully
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input, JSON data expected
+        '404':
+          description: Keyword not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Keyword with id 1 not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error connecting to MySQL: some error message"
+    delete:
+      tags:
+        - "Keywords"
+      summary: Delete an existing keyword record
+      description: Delete data by removing an existing record in the `keyword` table within the MySQL database.
+      operationId: "keyword_endpoint.delete_keyword"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id
+              properties:
+                id:
+                  type: integer
+                  example: 1
+      responses:
+        '200':
+          description: Keyword deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Keyword with id 1 deleted successfully
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid input, JSON data expected
+        '404':
+          description: Keyword not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Keyword with id 1 not found
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error connecting to MySQL: some error message"
+  /faculty-top-cited/{year}:
+    get:
+      operationId: "faculty.get_top_cited"
+      tags:
+        - "Faculty"
+      summary: "Get top cited faculty"
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1000
+            maximum: 9999
+      responses:
+        "200":
+          description: "List of top cited faculty"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    faculty_id:
+                      type: integer
+                    faculty_name:
+                      type: string
+                    num_publications:
+                      type: integer
+        "400":
+          description: "Invalid input"
+        "500":
+          description: "Database error"
